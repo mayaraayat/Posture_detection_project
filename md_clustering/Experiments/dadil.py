@@ -46,10 +46,8 @@ def main():
     
     
     # Combine features if necessary
-    Y1 = np.load('Posture_Data\Results\KMeans\Clusters.npy', allow_pickle=True)
-    Y2 = np.load('Posture_Data\Results\KMeans\MappedLabels_Continuous.npy', allow_pickle=True)
-    
-   
+    Y1 = np.load('Posture_Data/Results/KMeans/Clusters.npy', allow_pickle=True)
+    Y2 = np.load('Posture_Data/Results/KMeans/MappedLabels_Continuous.npy', allow_pickle=True)
     # Prepare data for the barycenter computation
     Ys = [torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=7).float(),
         torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=7).float()]

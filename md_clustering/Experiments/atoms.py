@@ -41,8 +41,8 @@ def main():
     
     
     # Combine features if necessary
-    Y1 = np.load('Posture_Data\Results\KMeans\Clusters.npy', allow_pickle=True)
-    Y2 = np.load('Posture_Data\Results\KMeans\MappedLabels_Continuous.npy', allow_pickle=True)
+    Y1 = np.load('Posture_Data/Results/KMeans/Clusters.npy', allow_pickle=True)
+    Y2 = np.load('Posture_Data/Results/KMeans/MappedLabels_Continuous.npy', allow_pickle=True)
     
     # Define hyperparameters
     n_classes = 7
@@ -68,7 +68,7 @@ def main():
     # Ensure n_samples is not larger than the size of the smallest dataset
     #n_samples = min(n_samples, min(len(Xs), len(Ys[0]), len(Ys[1])))
     atoms = []
-    for i in range(0, len(Xs[0]), batch_size):
+    for i in range(0, len(Xs[0]), len(Xs[0])//100):
         X_batch = [X[i:i+batch_size] for X in Xs]
         Y_batch = [Y[i:i+batch_size] for Y in Ys]
         atoms_batch = compute_barycenters(X_batch, Y_batch, n_samples, batch_size, num_iter_dil, n_classes, ϵ, η_A, lr, num_iter_max)
