@@ -179,6 +179,8 @@ class JointWassersteinLoss(torch.nn.Module):
         YP_double = YP.double()
         YQ_double = YQ.double()
         CY = self.label_metric(YP_double, YQ_double)
+        XP = XP.float()
+        XQ = XQ.float()
         CX = torch.cdist(XP, XQ, p=self.p) ** self.q
         if YP is not None and YQ is not None:
             CY = self.label_metric(YP_double, YQ_double)
@@ -225,6 +227,8 @@ class SupervisedPartialWassersteinDistance(torch.nn.Module):
     def forward(self, XQ, YQ, XP, YP, index=None):
         a = unif(XP.shape[0], device=XP.device)
         b = unif(XQ.shape[0], device=XQ.device)
+        XP = XP.float()
+        XQ = XQ.float()
         CX = torch.cdist(XP, XQ) ** 2
 
         if self.label_metric.lower() == 'l2':
@@ -286,7 +290,10 @@ class JointDeltaWassersteinLoss(torch.nn.Module):
     def forward(self, XQ, YQ, XP, YP, index=None):
         a = unif(XP.shape[0], device=XP.device)
         b = unif(XQ.shape[0], device=XQ.device)
+        XP = XP.float()
+        XQ = XQ.float()
         CX = torch.cdist(XP, XQ, p=self.p) ** self.q
+
         if YP is not None and YQ is not None:
             if index is not None:
                 CY = YP @ self.M[index] @ YQ.T

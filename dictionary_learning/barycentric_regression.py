@@ -62,6 +62,8 @@ class WassersteinBarycentricRegression(pl.LightningModule):
         self.track_pseudo_label_acc = False
         self.batch_size = batch_size
         self.training_epoch_outputs = []
+        device='gpu'
+        self.to('cuda')
         # Initialize weights
         if A is None:
             if n_distributions is None:
@@ -326,9 +328,10 @@ class WassersteinBarycentricRegression(pl.LightningModule):
                 αℓ = aℓ
             else:
                 αℓ = aℓ.softmax(dim=0)
-
+            device='cuda'
             # Calculates the Wasserstein Barycenter
-            XBℓ, YBℓ = wasserstein_barycenter_with_cost(XP=Xs, YP=Ys,
+            XBℓ, YBℓ = wasserstein_barycenter_with_cost(XP=[XP_k.to(device) for XP_k in Xs],
+    YP=[YP_k.to(device) for YP_k in Ys],
                                                         n_samples=batch_size,
                                                         ϵ=self.reg,
                                                         α=αℓ,

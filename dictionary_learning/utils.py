@@ -43,7 +43,7 @@ def check_device(device):
     return torch.device(device)
 
 
-def unif(n, device='cpu', dtype=torch.float32):
+def unif(n, device='gpu', dtype=torch.float32):
     r"""Returns uniform sample weights for a number of samples $n > 0$.
     
     Args:

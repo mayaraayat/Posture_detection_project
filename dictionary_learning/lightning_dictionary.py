@@ -273,9 +273,14 @@ class LightningDictionary(pl.LightningModule):
         else:
             self.domain_names = domain_names
 
-    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_closure):
+    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure=None, *, on_tpu=None, using_native_amp=None, using_lbfgs=None):
+    # implementation of optimizer step
+    # implementation of optimizer step
         r"""Updates dictionary variables using gradients."""
-        optimizer.step(closure=optimizer_closure)
+        optimizer.step(closure=optimizer_closure) # remove 'closure=optimizer_closure' here
+        optimizer.zero_grad()
+        self.lr_scheduler.step()
+
 
         if self.proj_grad:
             with torch.no_grad():
@@ -739,15 +744,13 @@ class LightningUnsupervisedDictionary(pl.LightningModule):
         else:
             self.domain_names = domain_names
 
-    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_closure):
+    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure=None, *, on_tpu=None, using_native_amp=None, using_lbfgs=None):
+    # implementation of optimizer step
         r"""Updates dictionary variables using gradients."""
-        optimizer.step(closure=optimizer_closure)
-        
-        # Line 18: if we decide to project gradients, does so using
-        #          ot.utils.proj_simplex.
-        if self.proj_grad:
-            with torch.no_grad():
-                self.A.data = ot.utils.proj_simplex(self.A.data.T).T
+        optimizer.step(closure=optimizer_closure) # remove 'closure=optimizer_closure' here
+        optimizer.zero_grad()
+        self.lr_scheduler.step()
+
 
     def get_weights(self):
         r"""Returns the barycentric coordinates of distributions in $\mathcal{Q}$."""
@@ -1295,10 +1298,14 @@ class LightningDictionary(pl.LightningModule):
         else:
             self.domain_names = domain_names
 
-    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_closure):
+    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure=None, *, on_tpu=None, using_native_amp=None, using_lbfgs=None):
+    # implementation of optimizer step
+        
+    # implementation of optimizer step
         r"""Updates dictionary variables using gradients."""
         optimizer.step(closure=optimizer_closure)
-        
+        optimizer.zero_grad()
+        #self.lr_scheduler.step()
         if self.proj_grad:
             with torch.no_grad():
                 self.A.data = ot.utils.proj_simplex(self.A.data.T).T
