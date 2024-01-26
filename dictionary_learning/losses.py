@@ -178,9 +178,13 @@ class JointWassersteinLoss(torch.nn.Module):
         b = unif(XQ.shape[0], device=XQ.device)
         YP_double = YP.double()
         YQ_double = YQ.double()
+        device = YP_double.device
+        YQ_double = YQ_double.to(device)
         CY = self.label_metric(YP_double, YQ_double)
         XP = XP.float()
         XQ = XQ.float()
+        device = XP.device
+        XQ = XQ.to(device)
         CX = torch.cdist(XP, XQ, p=self.p) ** self.q
         if YP is not None and YQ is not None:
             CY = self.label_metric(YP_double, YQ_double)
