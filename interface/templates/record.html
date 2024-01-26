@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+    {% include 'includes/_messages.html' %}
+
+    <div class="jumbotron container" style="margin-top: 20px ;">
+        <center><h1 class="bd-title" id="content">Recording the seven postures </h1></center>
+        <center>
+            <img src="{{ url_for('position', position=1) }}" id="record_pos" width="390" height="450" />
+            <script>
+                const img = document.getElementById('record_pos');
+                let position = 1;
+            
+                function startRecording() {
+                    
+                    img.src = `/record/${position}`;
+                    position += 1; // Move to the next posture
+
+                }
+            
+
+            </script>
+            
+            <!-- Display the countdown -->
+            <div id="countdown"></div>
+            <br>
+            <button id="startRecordingBtn" type="button" class="btn btn-info" onclick="startRecording() ">Start recording</button>
+
+        </center>
+        
+
+    </div>
+        
+
+
+{% endblock %}

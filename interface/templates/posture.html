@@ -8,30 +8,21 @@
         <center><h1 class="bd-title" id="content">Pressure Matrix Heatmap</h1></center>
         <center>
             <img src="{{ url_for('get_frame', frame=0) }}" id="heatmap" />
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
             <script>
-                const socket = io.connect('http://' + document.domain + ':' + location.port);
-
-                const img = document.getElementById('heatmap');
-                let frame = 0;
-
-                socket.on('connect', function() {
-                    console.log('Connected to the server');
-                });
-
-                socket.on('seating_records', function(data) {
-                    // Handle the received data, e.g., update the heatmap
-                    console.log('Received seating records update:', data);
-                    // Update your heatmap or perform other actions
-                });
-
-                const maxFrames = 20; // Replace with the number of frames in your animation
-                setInterval(() => {
-                    frame = (frame + 1) % maxFrames;
-                    img.src = `/get_frame/${frame}`;
-                }, 100);
+            const img = document.getElementById('heatmap');
+            let frame = 0;
+            const maxFrames = 20; // Replace with the number of frames in your animation
+            
+            setInterval(() => {
+                frame = (frame+1) % maxFrames;
+                img.src = `/get_frame/${frame}`;
+            }, 50);
             </script>
         </center>
+        
+
     </div>
+        
+
 
 {% endblock %}
