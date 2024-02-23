@@ -43,7 +43,7 @@ class WassersteinBarycentricRegression(pl.LightningModule):
         self.training_epoch_outputs = []  # Add this list
 
         self.reg = reg
-        self.n_classes = Ys[0].shape[1]
+        self.n_classes = 31
         self.num_iter_barycenter = num_iter_barycenter
         self.num_iter_sinkhorn = num_iter_sinkhorn
         self.optimizer_name = optimizer_name
@@ -328,7 +328,7 @@ class WassersteinBarycentricRegression(pl.LightningModule):
                 αℓ = aℓ
             else:
                 αℓ = aℓ.softmax(dim=0)
-            device='cuda'
+            device='cpu'
             # Calculates the Wasserstein Barycenter
             XBℓ, YBℓ = wasserstein_barycenter_with_cost(XP=[XP_k.to(device) for XP_k in Xs],
     YP=[YP_k.to(device) for YP_k in Ys],

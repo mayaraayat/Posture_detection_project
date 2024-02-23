@@ -75,7 +75,16 @@ def dadil_clustering(Xs, Ys,XP,YP, n_samples,n_components,reg,reg_labels, batch_
         clusters_ℓ = Cℓ.argmin(dim=0)
         new_clusters.append(clusters_ℓ)
 
-    return new_clusters
+    print(len(XP))
+    print(len(YP))
+    print("Data type of yAtom[0]:", YP[0].dtype)
+
+    XP1=[x.cpu() for x in XP]
+    YP1=[y.cpu() for y in YP]
+    print("Data type of yAtom[0]:", YP1[0].dtype)
+    #print(XP1.shape)
+    #print(YP1.shape)
+    return new_clusters,XP1,YP1
 
 
 

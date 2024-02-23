@@ -1,5 +1,5 @@
-from utils.preprocessing import feature_scaling
-from utils.preprocessing import feature_normalization
+from md_clustering.utils.preprocessing import feature_scaling
+from md_clustering.utils.preprocessing import feature_normalization
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score

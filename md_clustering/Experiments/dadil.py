@@ -5,7 +5,7 @@ sys.path.append('../')
 sys.path.append('../../')
 warnings.filterwarnings('ignore')
 import json
-from utils.clustering_utils import clusters
+from md_clustering.utils.clustering_utils import clusters
 from dictionary_learning.DaDiL_clustering import *
 # Now you can use a simple import statement
 

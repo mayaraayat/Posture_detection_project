@@ -7,32 +7,38 @@ sys.path.append('../../')
 from dictionary_learning.weighted_barycenters import compute_barycenters
 warnings.filterwarnings('ignore')
 
-def main():
+
+features = np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
+Y1 = np.load('Results/KMeans/MappedLabels_Domain1.npy', allow_pickle=True)
+Y2 = np.load('Results/KMeans/MappedLabels_Domain2.npy', allow_pickle=True)
+Y3 = np.load('Results/KMeans/MappedLabels_Domain3.npy', allow_pickle=True)
+
+# Define hyperparameters
+n_classes = 31
+n_samples = 3000
+batch_size = 128
+ϵ = 0.01
+η_A = 0.0
+lr = 1e-1
+num_iter_max = 20
+num_iter_dil = 100
 
 
-    features=np.load('./md_clustering/Experiments/Office31/Data/resnet50-all--modern_office31.npy', allow_pickle=True)
-    Y1 = np.load('./md_clustering/Experiments/Office31/Results/KMeans/MappedLabels_Domain1.npy', allow_pickle=True)
-    Y2 = np.load('./md_clustering/Experiments/Office31/Results/KMeans/MappedLabels_Domain2.npy', allow_pickle=True)
-    Y3 = np.load('./md_clustering/Experiments/Office31/Results/KMeans/MappedLabels_Domain3.npy', allow_pickle=True)
-    data_list = features.tolist()
-    features = []
-    for array in data_list:
-        tensor = torch.from_numpy(array)
-        features.append(tensor)
+def initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr,num_iter_max,num_iter_dil):
 
-    # Define hyperparameters
-    n_classes = 31
-    n_samples = 3000
-    batch_size = 128
-    ϵ = 0.01
-    η_A = 0.0
-    lr = 1e-1
-    num_iter_max = 20
-    num_iter_dil=100
+
+
+
 
     # Prepare data for the barycenter computation
     Xs=features
-    Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=31).float()]
+    if torch.is_tensor(Y1):
+        Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=31).float(),
+              torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float(),
+              torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=31).float()]
+    else:
+
+        Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=31).float()]
 
     # Compute the barycenters
 
@@ -54,5 +60,6 @@ def main():
     for i, y_value in enumerate(YP):
         np.save(os.path.join(results_directory, f'yatom_{i}.npy'), y_value)
 
+    return(XP, YP)
 if __name__ == "__main__":
-    main()
+    initialize_atoms()
