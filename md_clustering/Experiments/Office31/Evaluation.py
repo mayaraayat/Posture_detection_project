@@ -128,9 +128,6 @@ def eval():
     print(weights.squeeze())
     # Reconstruct samples
 
-
-
-
     Xr= wasserstein_barycenter(XP=XAtom, YP=yAtom, n_samples=31, ϵ=0.0, α=weights.squeeze(),
                                     β=None, num_iter_max=10, verbose=True, propagate_labels=False,
                                     penalize_labels=False)
