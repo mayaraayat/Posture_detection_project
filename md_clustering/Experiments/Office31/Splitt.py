@@ -49,11 +49,9 @@ def split(domain):
         labels=labels[0]
 
 
-        # Assuming features is your torch tensor and labels is your list of labels
         features_np = features.numpy()  # Convert torch tensor to numpy array
         labels_np = np.array(labels)  # Convert list to numpy array
 
-        # Perform the stratified split
         X_train, X_test, y_train, y_test = train_test_split(features_np, labels_np, test_size=0.3, stratify=labels_np)
 
         return(X_train, X_test, y_train, y_test)
