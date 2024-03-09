@@ -136,11 +136,9 @@ def main(xmax):
 
     plt.plot(global_ari)
 
-    # Add labels and title
 
     plt.title('ARI')
 
-    # Show the plot
     plt.show()
 
     np.save('Results/DaDiL/nmi_history.npy',
