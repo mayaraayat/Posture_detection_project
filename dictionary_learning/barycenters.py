@@ -180,7 +180,9 @@ def wasserstein_barycenter_with_cost(XP, YP=None, n_samples=None, ϵ=0.0, α=Non
     if log:
         extra_ret['transport_plans'] = π
         return XB, extra_ret
-    return XB,C ,π
+
+
+    return XB,C , π
 
 
 

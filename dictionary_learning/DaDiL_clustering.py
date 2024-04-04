@@ -10,7 +10,7 @@ from dictionary_learning.utils import DictionaryDADataset
 
 
 
-def dadil_clustering(Xs, Ys,XP,YP, n_samples,n_components,reg,reg_labels, batch_size, n_classes, num_iter_max):
+def dadil_clustering(Xs, Ys,XP,YP, n_samples,reg,reg_labels, batch_size, n_classes, num_iter_max):
     # Create a MultiDomainBalancedBatchSampler
     train_dataset = DictionaryDADataset(Xs, Ys)
     S = MultiDomainBalancedBatchSampler([Ysk.argmax(dim=1).numpy() for Ysk in Ys],
@@ -75,8 +75,7 @@ def dadil_clustering(Xs, Ys,XP,YP, n_samples,n_components,reg,reg_labels, batch_
         clusters_ℓ = Cℓ.argmin(dim=0)
         new_clusters.append(clusters_ℓ)
 
-    print(len(XP))
-    print(len(YP))
+
     print("Data type of yAtom[0]:", YP[0].dtype)
 
     XP1=[x.cpu() for x in XP]

@@ -1,27 +1,24 @@
-import torch
-import numpy as np
-import warnings
-import os
+import ot
 import sys
-from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, silhouette_score, fowlkes_mallows_score
-import matplotlib.pyplot as plt
+from split_data import split_data
+import torch
+import warnings
+import numpy as np
+import pytorch_lightning as pl
+from Training import Train
+from dictionary_learning.utilss import BalancedBatchSamplerDA
+from dictionary_learning.utilss import DictionaryDADataset
 
-from KMeans_baseline import *
-from initialize_atoms import initialize_atoms
-from clustering import Dadclustering
+from dictionary_learning.barycenters import wasserstein_barycenter,wasserstein_barycenter_with_cost
+from dictionary_learning.barycentric_regression import WassersteinBarycentricRegression
+
+
+
 sys.path.append('../../')
-from dictionary_learning.weighted_barycenters import compute_barycenters
-
 warnings.filterwarnings('ignore')
+from sklearn.metrics import adjusted_rand_score
 
-def main(xmax):
-
-
-
-    features=np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
-
-    labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
-
+def main(features,labels,domain,train_ratio,n_epochs):
 
     data_list = features.tolist()
     alldata = []
@@ -30,124 +27,164 @@ def main(xmax):
 
         alldata.append(tensor)
 
-    alllabels = [labels[len(alldata[1]):3608], labels[:len(alldata[0])],
-                 labels[len(alldata[0]):(len(alldata[0]) + 793)]]
-    ylabels1 = []
 
-    # Convert each one-hot encoded array to labels and append them to the list
-    for array in alllabels:
-        labels = np.argmax(array, axis=1)
-        ylabels1.append(labels)
-    alllabels = ylabels1
-    alldata = [alldata[-1], alldata[0], alldata[1]]
+    all_data = [torch.from_numpy(feature) for feature in features]
 
-    features=alldata
-    labels=alllabels
+    # Calculate the number of domains
+    num_domains = len(all_data)
 
-    print(len(alldata[0]),len(alldata[1]),len(alldata[2]))
-    print(len(alllabels[0]),len(alllabels[1]),len(alllabels[2]))
+    # Calculate the length of each domain's data
+    domain_sizes = [len(data) for data in all_data]
 
-    Y1,Y2,Y3=KMeans_baseline(features, labels)
-    print(len(Y1),len(Y2),len(Y3))
-    mapped_labels_domain=[Y1,Y2,Y3]
-    ari_history = []
-    nmi_history = []
-    fmi_history = []
-    for i in range(len(alllabels)):
-        true_labels = alllabels[i]
-        mapped_labels = mapped_labels_domain[i]
-        # Calculate evaluation metrics
-        ari = adjusted_rand_score(true_labels, mapped_labels)
+    # Calculate the starting index of each domain's labels
+    start_indices = [sum(domain_sizes[:i]) for i in range(num_domains)]
 
-        nmi = normalized_mutual_info_score(true_labels, mapped_labels)
+    # Calculate the ending index of each domain's labels
+    end_indices = [start_indices[i] + domain_sizes[i] for i in range(num_domains)]
 
-        fmi = fowlkes_mallows_score(true_labels, mapped_labels)
+    # Slice the labels based on the start and end indices of each domain
+    all_labels = [labels[start_indices[i]:end_indices[i]] for i in range(num_domains)]
 
+    y_labels = [np.argmax(label, axis=1) for label in all_labels]
 
-        ari_history.append(ari)
-        nmi_history.append(nmi)
-        fmi_history.append(fmi)
+    # print(y_labels[0].shape,y_labels[1].shape,y_labels[2].shape)
+    # print(all_data[0].shape,all_data[1].shape,all_data[2].shape)
 
-    global_ari = []
-    global_nmi = []
-    global_fmi = []
+    num_domains = len(all_data)
 
-    global_ari.append(ari_history)
-
-    print("global_ari history : ", global_ari)
-    global_nmi.append(nmi_history)
-    global_fmi.append(fmi_history)
-
-    x=0
-    while x<xmax:
-
-        ari_history = []
-        nmi_history = []
-        fmi_history = []
+    test_size=1-train_ratio
 
 
 
-        n_classes = 31
-        n_samples = 3000
-        batch_size = 128
-        ϵ = 0.01
-        η_A = 0.0
-        lr = 1e-1
-        num_iter_max = 20
-        num_iter_dil = 50
 
-        XP,YP=initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr,num_iter_max,num_iter_dil)
+    for i in range(num_domains):
+        if domain == f'Domain_{i + 1}':
+            if test_size >= 1:
 
-        print(len(XP[0]),len(XP[1]),len(XP[2]))
-        print(len(YP[0]),len(YP[1]),len(YP[2]))
+                X_test=all_data[i]
+                del all_data[i]
+                y_test=y_labels[i]
+                del y_labels[i]
+            else:
+                X_train, X_test, y_train, y_test = split_data(domain, features, labels, test_size=test_size)
+                del all_data[i]
+                del y_labels[i]
+                all_data.append(torch.tensor((X_train)))
 
-        mapped_labels_domain_1,mapped_labels_domain_2,mapped_labels_domain_3,XAtom,YAtom=Dadclustering(features,Y1,Y2,Y3,XP,YP)
-        mapped_labels_domain =[mapped_labels_domain_1,mapped_labels_domain_2,mapped_labels_domain_3]
-        Y1, Y2, Y3=mapped_labels_domain_1,mapped_labels_domain_2,mapped_labels_domain_3
+                y_labels.append(torch.tensor(y_train))
+            break
+    else:
+        raise ValueError(f"Invalid domain '{domain}'")
+    X_train, y_train = all_data, y_labels
+    # print(X_train[0].shape)
+    # print(X_train[1].shape)
+    # print(X_train[2].shape)
 
-
-        for i in range(len(alllabels)):
-
-            true_labels = alllabels[i]
-            mapped_labels=mapped_labels_domain[i]
-        # Calculate evaluation metrics
-            ari = adjusted_rand_score(true_labels, mapped_labels)
-
-            nmi = normalized_mutual_info_score(true_labels, mapped_labels)
-
-            fmi = fowlkes_mallows_score(true_labels,mapped_labels)
-
-            ari_history.append(ari)
-            nmi_history.append(nmi)
-            fmi_history.append(fmi)
-        print("ari history : ",ari_history)
-
-        global_ari.append(ari_history)
-        global_nmi.append(nmi_history)
-        global_fmi.append(fmi_history)
-
-        print("global_ari history : ", global_ari)
-        x+=1
+    Yt=y_test
+    Xt=torch.tensor(X_test)
 
 
 
-    np.save('Results/DaDiL/global_ari.npy',
-            global_ari)
-
-    plt.plot(global_ari)
 
 
-    plt.title('ARI')
+    XAtom, yAtom = Train(n_epochs,X_train, y_train,3000, 0, 0.0, 128, 31,50)
 
-    plt.show()
+    YAtom=[yAtom[i].argmax(dim=1) for i in range(len(yAtom))]
 
-    np.save('Results/DaDiL/nmi_history.npy',
-            global_nmi)
-    np.save('Results/DaDiL/fmi_history.npy',
-            global_fmi)
+    train_dataset = DictionaryDADataset(XAtom, yAtom, Xt, Yt)
+    num_iter_dil=100
+    n_classes=31
+    batch_size=260
+    n_samples=2000
+    batches_per_it=n_samples // batch_size
+    S = BalancedBatchSamplerDA([ysk for ysk in YAtom],
+                               n_target=len(Xt),
+                               n_classes=n_classes,
+                               batch_size=batch_size,
+                               n_batches=batches_per_it)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_sampler=S)
 
-    return (XAtom, YAtom)
+
+    ϵ=0.0
+
+    # Creates dictionary
+
+    wbr = WassersteinBarycentricRegression(XAtom,
+                                           yAtom,
+                                           n_distributions=1,
+                                           learning_rate=1e-2,
+                                           sampling_with_replacement=True,
+                                           weight_initialization='uniform')
+
+    # Creates trainer object
+    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cpu', logger=False, enable_checkpointing=False)
+    trainer.fit(wbr, train_loader)
+
+
+
+    # Get dictionary weights
+    weights = wbr.A.detach().squeeze()
+    print(weights.squeeze())
+    # Reconstruct samples
+
+    Xr= wasserstein_barycenter(XP=XAtom, YP=yAtom, n_samples=31, ϵ=0.0, α=weights.squeeze(),
+                                    β=None, num_iter_max=10, verbose=True, propagate_labels=False,
+                                    penalize_labels=False)
+    new_clusters = []
+
+
+
+
+
+    np.save('Results/DaDiL/TargetBarycenters.npy',
+            Xr)
+
+
+
+
+
+
+
+    #Method with EUCLIDIAN
+    Cℓ = torch.cdist(Xr.cpu(), torch.tensor(Xt).float(), p=2) ** 2
+    clusterss = Cℓ.argmin(dim=0)
+
+
+
+    #Method with OT
+    π = ot.emd([], [], np.array(Cℓ))
+    new_clusters = torch.argmax(torch.transpose(torch.tensor(π), 0, 1), dim=1)
+
+
+
+
+
+
+
+    ari = adjusted_rand_score(y_test, clusterss)
+
+
+
+    print(ari)
+
+
+
+
 
 
 if __name__ == "__main__":
-    main(2)
+
+    r"""Features must be an array of n_domains arrays"""
+    features = np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
+
+    r"""Labels must be an array of shape (TotalnumberFeatures,num_classes)"""
+
+    labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
+
+    main(features,labels,"Domain_1",0.8,2)
+
+
+
+
+
+

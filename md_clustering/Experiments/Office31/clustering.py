@@ -1,106 +1,69 @@
 
-# Import the necessary functions
-
-from dictionary_learning.DaDiL_clustering import *
-from md_clustering.utils.clustering_utils import clusters
 import warnings
-import sys
-import os
-sys.path.append('../../')
+
+from dictionary_learning.DaDiL_clusteringV1 import dadil_clustering
+
+from md_clustering.utils.clustering_utils import clusters
+
+# Suppress warnings
 warnings.filterwarnings('ignore')
 
-# Now you can use a simple import statement
+def dadclustering(features, Ys, XP, YP, n_samples, reg, reg_labels, batch_size, n_classes, num_iter_max):
+    """
+    Perform DaDiL clustering.
 
-# Import features , labels and atoms
-features = np.load(
-    'Data/resnet50-all--modern_office31.npy', allow_pickle=True)
-data_list = features.tolist()
-features = []
-for array in data_list:
-    tensor = torch.from_numpy(array)
-    features.append(tensor)
-Y1 = np.load(
-    'Results/KMeans/MappedLabels_Domain1.npy', allow_pickle=True)
-Y2 = np.load(
-    'Results/KMeans/MappedLabels_Domain2.npy', allow_pickle=True)
-Y3 = np.load(
-    'Results/KMeans/MappedLabels_Domain3.npy', allow_pickle=True)
+    Args:
+    - features (list of torch.Tensor): List of feature tensors for each domain.
+    - Ys (list of torch.Tensor): List of label tensors for each domain.
+    - XP (list of np.ndarray): List of XP NumPy arrays.
+    - YP (list of np.ndarray): List of YP NumPy arrays.
+    - n_samples (int): Number of samples.
+    - n_components (int): Number of components.
+    - reg (float): Regularization parameter.
+    - reg_labels (float): Regularization parameter for labels.
+    - batch_size (int): Batch size.
+    - n_classes (int): Number of classes.
+    - num_iter_max (int): Maximum number of iterations.
 
-# Load XP and YP NumPy files
-XP = []
-YP = []
-for i in range(len(features)):
-    x_file_path = os.path.join(
-        'Results/Atoms', f'xatom_{i}.npy')
-    y_file_path = os.path.join(
-        'Results/Atoms', f'yatom_{i}.npy')
-
-    # Load XP
-    loaded_x = np.load(x_file_path)
-    XP.append(torch.tensor(loaded_x))
-
-    # Load YP
-    loaded_y = np.load(y_file_path)
-    YP.append(torch.tensor(loaded_y))
-def Dadclustering(features,Y1,Y2,Y3,XP,YP):
-
-
-    # Define hyperparameters
-    n_classes = 31
-    n_samples = 3000
-    batch_size = 128
-    n_components = 3
-    n_datasets = 3
-    reg = 0.0
-    reg_labels = 0.0
-    num_iter_max = 80
-
+    Returns:
+    - cluster_labels (list of np.ndarray): Cluster labels for each domain.
+    - XAtom (list of torch.Tensor): List of XAtom tensors.
+    - YAtom (list of torch.Tensor): List of YAtom tensors.
+    """
     Xs = features
+    cluster_labels, XAtom, YAtom = dadil_clustering(
+        Xs, Ys, XP, YP, n_samples, reg, reg_labels, batch_size, n_classes, num_iter_max)
 
-    if torch.is_tensor(Y1):
-        Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=n_classes).float(),
-              torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=n_classes).float(),
-              torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=n_classes).float()]
+    domains=[]
+    for i,feature in enumerate(features):
+        labels=cluster_labels[i]
+        domain = clusters(feature, labels, n_classes)
+        domain.cluster_data()
+        domains.append(domain)
+
+    mapped_labels = []
+    for i in range(1, len(domains)):
+        mapped_labels.append(domains[i].clusters_mapping(domains[0].cluster_tensors))
+
+        # domain_1 = clusters(features[0], cluster_labels[0], n_classes)
+        # domain_2 = clusters(features[1], cluster_labels[1], n_classes)
+        # domain_3 = clusters(features[2], cluster_labels[2], n_classes)
+        #
+        # # Cluster data for each domain
+        #
+        # domain_1.cluster_data()
+        # domain_2.cluster_data()
+        # domain_3.cluster_data()
+        #
+        # print("longeur de domain 2", len(domain_2.cluster_tensors))
+        #
+        #
+        # mapped_labels_domain_1 = domain_1.clusters_mapping(domain_2.cluster_tensors)
+        #
+        # mapped_labels_domain_3 = domain_3.clusters_mapping(domain_2.cluster_tensors)
+
+    # Determine the return values based on the length of mapped_labels
+    if len(mapped_labels) == 1:
+        return [cluster_labels[0], mapped_labels[0]],XAtom, YAtom
     else:
-
-        Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=n_classes).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=n_classes).float(),torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=n_classes).float()]
-
-    # Perform the DaDiL clustering
-    cluster_labels,XAtom,YAtom = dadil_clustering(
-        Xs, Ys, XP, YP, n_samples, n_components, reg, reg_labels, batch_size, n_classes, num_iter_max)
-
-    print(cluster_labels[0].shape)
-    print(cluster_labels[1].shape)
-
-    domain_1 = clusters(features[0], cluster_labels[0], n_classes)
-    domain_2 = clusters(features[1], cluster_labels[1], n_classes)
-    domain_3 = clusters(features[2], cluster_labels[2], n_classes)
-
-    # Cluster data for each domain
-
-    domain_1.cluster_data()
-    domain_2.cluster_data()
-    domain_3.cluster_data()
-
-    print("longeur de domain 2",len(domain_2.cluster_tensors))
-
-    np.save('Results/DaDiL/MappedLabels_Domain1.npy',
-            cluster_labels[0])
-    mapped_labels_domain_2 = domain_2.clusters_mapping(
-        domain_1.cluster_tensors)
-    np.save('Results/DaDiL/MappedLabels_Domain2.npy',
-            mapped_labels_domain_2)
-
-    # Map cluster labels for Domain 3 using Domain 1's cluster tensors
-
-    mapped_labels_domain_3 = domain_3.clusters_mapping(domain_1.cluster_tensors)
-    np.save('Results/DaDiL/MappedLabels_Domain3.npy',mapped_labels_domain_3)
-    print(len(mapped_labels_domain_2))
-
-    #print(len(mapped_labels_domain_3))
-
-    return(cluster_labels[0],mapped_labels_domain_2,mapped_labels_domain_3,XAtom,YAtom)
-
-
-if __name__ == "__main__":
-    Dadclustering()
+        return [cluster_labels[0], *mapped_labels],XAtom, YAtom

@@ -270,6 +270,7 @@ class LightningDictionary(pl.LightningModule):
             if n_distributions is None:
                 raise ValueError("If 'domain_names' is not given, 'n_distributions' must be provided.")
             self.domain_names = ["Domain {}".format(ℓ) for ℓ in range(n_distributions)]
+            self.domain_names = ["Domain {}".format(ℓ) for ℓ in range(n_distributions)]
         else:
             self.domain_names = domain_names
 

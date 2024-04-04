@@ -24,7 +24,7 @@ num_iter_max = 20
 num_iter_dil = 100
 
 
-def initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr,num_iter_max,num_iter_dil):
+def initialize_atoms(features,mapped_labels_domain,n_classes,n_samples,batch_size,ϵ,η_A,lr,num_iter_max,num_iter_dil):
 
 
 
@@ -32,13 +32,14 @@ def initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr
 
     # Prepare data for the barycenter computation
     Xs=features
-    if torch.is_tensor(Y1):
-        Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=31).float(),
-              torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float(),
-              torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=31).float()]
-    else:
 
-        Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=31).float()]
+    Ys = []
+
+    for Y in mapped_labels_domain:
+        if torch.is_tensor(Y):
+            Ys.append(torch.nn.functional.one_hot(Y.long(), num_classes=31).float())
+        else:
+            Ys.append(torch.nn.functional.one_hot(torch.from_numpy(Y).long(), num_classes=31).float())
 
     # Compute the barycenters
 
@@ -63,3 +64,42 @@ def initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr
     return(XP, YP)
 if __name__ == "__main__":
     initialize_atoms()
+
+
+
+def initialize_atomsTest(features,Y1,Y2,n_classes,n_samples,batch_size,ϵ,η_A,lr,num_iter_max,num_iter_dil):
+
+
+
+
+
+    # Prepare data for the barycenter computation
+    Xs=features
+    if torch.is_tensor(Y1):
+        Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=31).float(),
+              torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float()]
+    else:
+
+        Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float()]
+
+    # Compute the barycenters
+
+    atoms=compute_barycenters(Xs,Ys, n_samples, batch_size,num_iter_dil,
+                                      n_classes, ϵ, η_A, lr, num_iter_max)
+
+    #Getting initialized atoms
+    XP=[xatom[0] for xatom in atoms]
+    YP=[yatom[1] for yatom in atoms]
+    # Create the Results/Atoms directory if it doesn't exist
+    results_directory = "./md_clustering/Experiments/Office31/Results/Atoms"
+    os.makedirs(results_directory, exist_ok=True)
+
+    # Save atoms supports as NumPy files
+
+    for i, x_value in enumerate(XP):
+        np.save(os.path.join(results_directory, f'xatom_{i}.npy'), x_value)
+
+    for i, y_value in enumerate(YP):
+        np.save(os.path.join(results_directory, f'yatom_{i}.npy'), y_value)
+
+    return(XP, YP)
