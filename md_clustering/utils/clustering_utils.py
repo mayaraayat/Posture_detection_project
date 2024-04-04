@@ -1,10 +1,12 @@
-from multimarginal_OT.solving_MM import solve_multimarginal_optimal_transport
-from multimarginal_OT.cost_matrix import wasserstein_cost_matrix
-import torch
+
 import warnings
 import numpy as np
 import sys
 sys.path.append('../../../')
+
+from multimarginal_OT.solving_MM import solve_multimarginal_optimal_transport
+from multimarginal_OT.cost_matrix import wasserstein_cost_matrix
+import torch
 
 warnings.filterwarnings('ignore')
 

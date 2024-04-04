@@ -33,13 +33,11 @@ num_iter_dil = 100
 
 def initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr,num_iter_max,num_iter_dil):
 
+    
 
 
 
-
-    # Prepare data for the barycenter computation
-    flat_features = [item for sublist in features for item in sublist]
-    Xs=[torch.from_numpy(np.array(array)) for array in flat_features]
+    #Xs=[torch.from_numpy(np.array(array)) for array in flat_features]
     if torch.is_tensor(Y1):
         Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=7).float(),
               torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=7).float(),
@@ -49,7 +47,29 @@ def initialize_atoms(features,Y1,Y2,Y3,n_classes,n_samples,batch_size,ϵ,η_A,lr
         Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=7).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=7).float(),torch.nn.functional.one_hot(torch.from_numpy(Y3).long(), num_classes=7).float()]
 
     # Compute the barycenters
-
+    l=[y.shape for y in Ys]
+    if torch.is_tensor(features[0]):
+        features0 = features[0]
+    else : 
+        features0 = torch.from_numpy(features[0]) 
+    if torch.is_tensor(features[1]):
+        features1 = features[1]
+    else : 
+        features1 = torch.from_numpy(features[1]) 
+    if torch.is_tensor(features[2]):
+        features2 = features[2]
+    else : 
+        features2 = torch.from_numpy(features[2]) 
+    Xs = [features0, features1, features2]
+    print("Before fit - Xs shapes:", [x.shape for x in Xs])
+    print("Before fit - Ys shapes:", [y.shape for y in Ys])
+    '''atoms = []
+    for i in range(0, len(Xs[0]), len(Xs[0])//100):
+        X_batch = [X[i:i+batch_size] for X in Xs]
+        Y_batch = [Y[i:i+batch_size] for Y in Ys]
+        atoms_batch = compute_barycenters(X_batch, Y_batch, n_samples, batch_size, num_iter_dil, n_classes, ϵ, η_A, lr, num_iter_max)
+    # Process the batched atoms
+        atoms.extend(atoms_batch)'''
     atoms=compute_barycenters(Xs,Ys, n_samples, batch_size,num_iter_dil,
                                       n_classes, ϵ, η_A, lr, num_iter_max)
 

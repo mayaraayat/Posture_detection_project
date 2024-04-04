@@ -7,7 +7,7 @@ import sys
 sys.path.append('../../')
 from utils.clustering_utils import clusters
 from Splitt import split
-
+import pickle
 import json
 import torch
 import random
@@ -32,24 +32,26 @@ from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, s
 
 def eval():
 
-    features = np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
+    with open ('Results/features_dic.pkl','rb') as file:
+        dic = pickle.load(file)
 
-    data_list = features.tolist()
+    with open ('Results/labels_dic.pkl','rb') as file:
+        lab = pickle.load(file) 
+    labels = list(lab.values())
+    features = list(dic.values())
+    data_list = features
     alldata = []
     for array in data_list:
         tensor = torch.from_numpy(array)
 
         alldata.append(tensor)
 
-    Y1 = np.load('Results/DaDiL/MappedLabels_Domain1.npy', allow_pickle=True)
-    Y2 = np.load('Results/DaDiL/MappedLabels_Domain2.npy', allow_pickle=True)
-    Y3 = np.load('Results/DaDiL/MappedLabels_Domain3.npy', allow_pickle=True)
+    Y1 = np.load('Results/DaDil/MappedLabels_Domain1.npy', allow_pickle=True)
+    Y2 = np.load('Results/DaDil/MappedLabels_Domain2.npy', allow_pickle=True)
+    Y3 = np.load('Results/DaDil/MappedLabels_Domain3.npy', allow_pickle=True)
     Newlabels=[Y1,Y2,Y3]
-    labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
-
-
-    alllabels = [labels[len(alldata[1]):3608], labels[:len(alldata[0])],
-                 labels[len(alldata[0]):(len(alldata[0]) + 793)]]
+    
+    alllabels = [labels[-1], labels[0],labels[1]]
 
     ylabels1 = []
 
@@ -58,26 +60,25 @@ def eval():
         labels = np.argmax(array, axis=1)
         ylabels1.append(labels)
     alllabels = ylabels1
-
+    
     Xs=[alldata[-1], alldata[0]]
     print(Xs[0].shape,Xs[1].shape)
     ys=[alllabels[0], alllabels[1]]
-    print(ys[0].shape,ys[1].shape)
+    print(len(ys[0]),len(ys[1]))
 
 
-    X_train, X_test, y_train, y_test=split('Amazon')
-
+    X_train, X_test, y_train, y_test=split('Sub8')
     Xs=[torch.tensor(X_train), alldata[0]]
     ys=[y_train, alllabels[1]]
     print(Xs[0].shape,Xs[1].shape)
 
-    print(ys[0].shape,ys[1].shape)
+    print(len(ys[0]),len(ys[1]))
 
-    Ys=[torch.nn.functional.one_hot(torch.tensor(ys[0]),num_classes=31).float(),torch.nn.functional.one_hot(torch.tensor(ys[1]),num_classes=31).float()]
+    #Ys=[torch.nn.functional.one_hot(torch.tensor(ys[0]),num_classes=7).float(),torch.nn.functional.one_hot(torch.tensor(ys[1]),num_classes=7).float()]
 
 
     Xt = alldata[1]
-    Yt = torch.nn.functional.one_hot(torch.tensor(alllabels[2]), num_classes=31).float()
+    Yt = torch.nn.functional.one_hot(torch.from_numpy(alllabels[2]).long(), num_classes=7).float()
     print(Yt.shape)
 
 
@@ -87,13 +88,13 @@ def eval():
 
 
     num_iter_dil=100
-    n_classes=31
+    n_classes=7
     batch_size=260
     n_samples=2000
     batches_per_it=n_samples // batch_size
 
 
-    XAtom, yAtom = main(6)
+    XAtom, yAtom = main(3)
     YAtom=[yAtom[0].argmax(dim=1),yAtom[1].argmax(dim=1),yAtom[2].argmax(dim=1)]
 
     train_dataset = DictionaryDADataset(XAtom, yAtom, Xt, Yt)
@@ -118,7 +119,7 @@ def eval():
                                            weight_initialization='uniform')
 
     # Creates trainer object
-    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cpu', logger=False, enable_checkpointing=False)
+    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cuda', logger=False, enable_checkpointing=False)
     trainer.fit(wbr, train_loader)
 
     # Gets loss at last it
@@ -138,7 +139,7 @@ def eval():
 
 
 
-    np.save('Results/DaDiL/TargetBarycenters.npy',
+    np.save('Results/DaDil/TargetBarycenters.npy',
             Xr)
     Cℓ = torch.cdist(Xr.cpu(), torch.tensor(Xt).float(), p=2) ** 2
     clusterss = Cℓ.argmin(dim=0)
@@ -147,7 +148,7 @@ def eval():
     print(Yt.shape)
     print(Yt.shape)
 
-    domain_1 = clusters(Xt, clusterss, 31)
+    domain_1 = clusters(Xt, clusterss, 7)
     domain_1.cluster_data()
     labels=domain_1.cluster_tensors
 
@@ -158,7 +159,7 @@ def eval():
 
     fmi = fowlkes_mallows_score(alllabels[2], clusterss)
 
-    print(ari)
+    print('ari: ',ari)
 
 
 

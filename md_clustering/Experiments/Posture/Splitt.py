@@ -18,20 +18,24 @@ warnings.filterwarnings('ignore')
 def split(domain):
 
 
+    with open ('Results/features_dic.pkl','rb') as file:
+        dic = pickle.load(file)
 
-    features=np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
+    with open ('Results/labels_dic.pkl','rb') as file:
+        lab = pickle.load(file)  
+    features=list(dic.values())
 
-    labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
+    labels = list(lab.values())
 
 
-    data_list = features.tolist()
+    data_list = features
     alldata = []
     for array in data_list:
         tensor = torch.from_numpy(array)
 
         alldata.append(tensor)
 
-    alllabels = [labels[len(alldata[1]):3608], labels[:len(alldata[0])]]
+    alllabels = [labels[-1], labels[0]]
     ylabels1 = []
 
     # Convert each one-hot encoded array to labels and append them to the list
@@ -44,7 +48,7 @@ def split(domain):
     features=alldata
     labels=alllabels
 
-    if domain=='Amazon' :
+    if domain=='Sub8' :
         features=features[0]
         labels=labels[0]
 
@@ -52,12 +56,12 @@ def split(domain):
         # Assuming features is your torch tensor and labels is your list of labels
         features_np = features.numpy()  # Convert torch tensor to numpy array
         labels_np = np.array(labels)  # Convert list to numpy array
-
+        print(features_np.shape, labels_np.shape)
         # Perform the stratified split
-        X_train, X_test, y_train, y_test = train_test_split(features_np, labels_np, test_size=0.3, stratify=labels_np)
+        X_train, X_test, y_train, y_test = train_test_split(features_np, labels_np, test_size=0.05, stratify=labels_np)
 
         return(X_train, X_test, y_train, y_test)
 
 
 if __name__ == "__main__":
-    split('Amazon')
+    split('Sub8')

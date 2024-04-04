@@ -14,46 +14,11 @@ from dictionary_learning.weighted_barycenters import compute_barycenters
 
 warnings.filterwarnings('ignore')
 
-def extract_pressure_matrices(json_data):
-    pressure_matrices = []
-    for entry in json_data['pressureData']:
-        pressure_matrix = entry["pressureMatrix"]
-        pressure_matrices.append({"pressureMatrix": pressure_matrix})
-    return pressure_matrices
+with open ('Results/features_dic.pkl','rb') as file:
+    dic = pickle.load(file)
 
-def extract_features_from_pressure_matrices(pressure_matrices):
-    flattened_data = [np.array(item["pressureMatrix"]).flatten() for item in pressure_matrices]
-    return np.concatenate(flattened_data, axis=0)
-dic = {}
-lab = {}
-for i in range(6,9):
-    folder_path = f'data/Subject_{i}/Posture_data'
-
-    # Get all files in the folder
-    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-    labels = [int(f.split('.')[0][-1])for f in files]
-    l = []
-
-    for f in files:
-        file_path = os.path.join(folder_path, f)
-        # Check if the file is a JSON file
-        if file_path.endswith('.json'):
-            with open(file_path, 'r') as file:
-                try:
-                    data = json.load(file) 
-                    pressure_matrices = extract_pressure_matrices(data)
-                    features = extract_features_from_pressure_matrices(pressure_matrices)
-                    l.append(features)
-                except json.JSONDecodeError as e:
-                    print(f"Error decoding JSON in file {file_path}: {e}")
-        else:
-            print(f"Skipping non-JSON file: {file_path}")
-     
-    num = list(range(7))
-    random.shuffle(num)
-    
-    dic[i] = [l[j] for j in num]
-    lab[i] = [labels[j] for j in num]
+with open ('Results/labels_dic.pkl','rb') as file:
+    lab = pickle.load(file) 
 
 def main(xmax):
 
@@ -63,16 +28,15 @@ def main(xmax):
 
     labels = list(lab.values())
 
-    '''
-    data_list = features.tolist()
+    data_list = features
     alldata = []
     for array in data_list:
         tensor = torch.from_numpy(array)
 
         alldata.append(tensor)
 
-    alllabels = [labels[len(alldata[1]):3608], labels[:len(alldata[0])],
-                 labels[len(alldata[0]):(len(alldata[0]) + 793)]]
+    alllabels = [labels[-1], labels[0],labels[1]]
+
     ylabels1 = []
 
     # Convert each one-hot encoded array to labels and append them to the list
@@ -83,10 +47,11 @@ def main(xmax):
     alldata = [alldata[-1], alldata[0], alldata[1]]
 
     features=alldata
+    
     labels=alllabels
 
     print(len(alldata[0]),len(alldata[1]),len(alldata[2]))
-    print(len(alllabels[0]),len(alllabels[1]),len(alllabels[2]))'''
+    print(len(alllabels[0]),len(alllabels[1]),len(alllabels[2]))
 
     Y1,Y2,Y3=KMeans_baseline(features, labels)
     print(len(Y1),len(Y2),len(Y3))
@@ -172,7 +137,7 @@ def main(xmax):
 
 
 
-    np.save('Results/DaDiL/global_ari.npy',
+    np.save('Results/DaDil/global_ari.npy',
             global_ari)
 
     plt.plot(global_ari)
@@ -184,9 +149,9 @@ def main(xmax):
     # Show the plot
     plt.show()
 
-    np.save('Results/DaDiL/nmi_history.npy',
+    np.save('Results/DaDil/nmi_history.npy',
             global_nmi)
-    np.save('Results/DaDiL/fmi_history.npy',
+    np.save('Results/DaDil/fmi_history.npy',
             global_fmi)
 
     return (XAtom, YAtom)

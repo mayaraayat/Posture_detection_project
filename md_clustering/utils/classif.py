@@ -1,11 +1,13 @@
-from md_clustering.utils.preprocessing import feature_scaling
-from md_clustering.utils.preprocessing import feature_normalization
+import sys
+sys.path.append('../../')
+from utils.preprocessing import feature_scaling
+from utils.preprocessing import feature_normalization
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 import numpy as np
-import sys
-sys.path.append('./')
+
+
 
 
 def eval_clf(clf, Xtr, ytr, Xts, yts, weights=None):

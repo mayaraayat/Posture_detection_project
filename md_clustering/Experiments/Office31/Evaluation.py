@@ -3,7 +3,9 @@ import numpy as np
 import warnings
 import os
 import sys
-from md_clustering.utils.clustering_utils import clusters
+
+sys.path.append('../../')
+from utils.clustering_utils import clusters
 from Splitt import split
 
 import json
@@ -24,7 +26,6 @@ from dictionary_learning.barycentric_regression import WassersteinBarycentricReg
 
 
 
-sys.path.append('../../')
 from dictionary_learning.weighted_barycenters import compute_barycenters
 warnings.filterwarnings('ignore')
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, silhouette_score, fowlkes_mallows_score
