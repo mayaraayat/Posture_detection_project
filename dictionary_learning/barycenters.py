@@ -35,7 +35,7 @@ from dictionary_learning.initialization import BarycenterInitializer
 def wasserstein_barycenter_with_cost(XP, YP=None, n_samples=None, ϵ=0.0, α=None, β=None, num_iter_max=100,
                            num_iter_sinkhorn=1000, τ=1e-4, verbose=False, inner_verbose=False,
                            initialization='random', propagate_labels=False, penalize_labels=False,
-                           device='gpu', log=False, covariance_type='full', label_metric='l2'):
+                           device='cuda', log=False, covariance_type='full', label_metric='l2'):
     r"""Computes the Wasserstein Barycenter
 
     $$ \hat{B}( \alpha, \mathcal{P} ) = \underset{P}{ \text{argmin} }\sum_{k=1}^{K} \alpha_{k} W_{c}(P, P_{k} ),$$
@@ -192,7 +192,7 @@ def wasserstein_barycenter_with_cost(XP, YP=None, n_samples=None, ϵ=0.0, α=Non
 def legacy_wasserstein_barycenter(XP, YP, ϵ=0.0, α=None, β=None, num_iter_max=100,
                                   num_iter_sinkhorn=1000, τ=1e-4, verbose=False, inner_verbose=False,
                                   initialization='random', penalize_labels=False,
-                                  device='gpu', log=False, covariance_type='full', label_metric='l2'):
+                                  device='cuda', log=False, covariance_type='full', label_metric='l2'):
     dtype = XP[0].dtype
     device = XP[0].device
     n_samples = int(np.sum([len(XPk) for XPk in XP]))
@@ -275,7 +275,7 @@ def legacy_wasserstein_barycenter(XP, YP, ϵ=0.0, α=None, β=None, num_iter_max
 def wasserstein_barycenter(XP, YP=None, n_samples=None, ϵ=0.0, α=None, β=None, num_iter_max=100,
                            num_iter_sinkhorn=1000, τ=1e-4, verbose=False, inner_verbose=False,
                            initialization='random', propagate_labels=False, penalize_labels=False,
-                           device='gpu', log=False, covariance_type='full', label_metric='l2'):
+                           device='cuda', log=False, covariance_type='full', label_metric='l2'):
     r"""Computes the Wasserstein Barycenter
     
     $$ \hat{B}( \alpha, \mathcal{P} ) = \underset{P}{ \text{argmin} }\sum_{k=1}^{K} \alpha_{k} W_{c}(P, P_{k} ),$$
@@ -424,7 +424,7 @@ def wasserstein_barycenter(XP, YP=None, n_samples=None, ϵ=0.0, α=None, β=None
 
 def linear_wasserstein_barycenter(XP, YP=None, n_samples=None, ϵ=0.0, α=None, num_iter_max=100,
                                   τ=1e-4, verbose=False, initialization='random', propagate_labels=False,
-                                  penalize_labels=False, device='gpu', log=False):
+                                  penalize_labels=False, device='cuda', log=False):
     if YP is None:
         if propagate_labels:
             raise ValueError("Expected labels to be given in 'y' for 'propagate_labels' = True")

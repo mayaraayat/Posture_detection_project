@@ -35,7 +35,7 @@ def compute_barycenters(Xs, Ys , n_samples, batch_size,num_iter_dil,
                                            weight_initialization='uniform')
     # Initialize the PyTorch Lightning Trainer
 
-    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cpu', logger=False, enable_checkpointing=False)
+    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cuda', logger=False, enable_checkpointing=False)
     trainer.fit(wbr, train_loader)
 
     # Compute barycenters for each atom
@@ -79,7 +79,7 @@ def compute_barycenters(Xs, Ys , n_samples, batch_size,num_iter_dil,
                                            weight_initialization='uniform')
     # Initialize the PyTorch Lightning Trainer
 
-    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cpu', logger=False, enable_checkpointing=False)
+    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cuda', logger=False, enable_checkpointing=False)
     trainer.fit(wbr, train_loader)
 
     # Compute barycenters for each atom
