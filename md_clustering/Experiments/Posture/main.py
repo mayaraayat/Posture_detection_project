@@ -95,7 +95,7 @@ def main(xmax):
 
         n_classes = 7
         n_samples = 3000
-        batch_size = 128
+        batch_size = 128 
         ϵ = 0.01
         η_A = 0.0
         lr = 1e-1
