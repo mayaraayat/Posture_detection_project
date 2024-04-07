@@ -1,10 +1,12 @@
-from multimarginal_OT.solving_MM import solve_multimarginal_optimal_transport
-from multimarginal_OT.cost_matrix import wasserstein_cost_matrix
-import torch
+
 import warnings
 import numpy as np
 import sys
 sys.path.append('../../../')
+
+from multimarginal_OT.solving_MM import solve_multimarginal_optimal_transport
+from multimarginal_OT.cost_matrix import wasserstein_cost_matrix
+import torch
 
 warnings.filterwarnings('ignore')
 
@@ -61,6 +63,7 @@ class clusters:
 
         # Use the target_data_tensor in the wasserstein_cost_matrix function
         Cost_matrix = wasserstein_cost_matrix(self.cluster_tensors, target_data_tensor)
+        print(len(Cost_matrix),len(Cost_matrix[0]),len(Cost_matrix[0][0]))
         cluster_mapping = solve_multimarginal_optimal_transport(Cost_matrix)
 
         inverse_mapping_dict = {v: k for k, v in cluster_mapping}

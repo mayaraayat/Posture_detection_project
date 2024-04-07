@@ -40,7 +40,7 @@ class AtomsInitializer:
 
 
 class BarycenterInitializer:
-    def __init__(self, n_samples, type='random', device='cpu', covariance_type='none'):
+    def __init__(self, n_samples, type='random', device='cuda', covariance_type='none'):
         assert type.lower() in ['random', 'class', 'samples', 'zeros']
 
         self.type = type.lower()

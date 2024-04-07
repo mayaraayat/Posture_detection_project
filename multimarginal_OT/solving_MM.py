@@ -16,6 +16,7 @@ def solve_multimarginal_optimal_transport(cost_matrix):
         list: A list of tuples representing the optimal mapping between source and target clusters.
               Each tuple contains the index of the source cluster and the index of the target cluster.
     """
+    print(cost_matrix, len(cost_matrix))
     num_clusters = len(cost_matrix)
 
     # Create a new model
@@ -32,6 +33,7 @@ def solve_multimarginal_optimal_transport(cost_matrix):
                 sum(
                     cost_matrix[i][j][comp][k][l] * x[i, j]
                     for l in range(3)
+                    
                 )
                 for k in range(len(cost_matrix[i][j][comp]))
             )
@@ -45,10 +47,10 @@ def solve_multimarginal_optimal_transport(cost_matrix):
     # Add constraints
     for i in range(num_clusters):
         model.addConstr(sum(x[i, j] for j in range(
-            len(cost_matrix[0]))) <= 1, name=f"source_cluster_{i + 1}_constraint")
+           len(cost_matrix[0])) ) <= 1, name=f"source_cluster_{i + 1}_constraint")
 
-    for j in range(len(cost_matrix[0])):
-        model.addConstr(sum(x[i, j] for i in range(num_clusters))
+    for j in  range(len(cost_matrix[0])):#range(min(num_clusters,len(cost_matrix[0]))):
+        model.addConstr(sum(x[i, j] for i in range(num_clusters) )
                         == 1, name=f"target_cluster_{j + 1}_constraint")
 
     # Set solver parameters (optional)

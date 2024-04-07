@@ -37,13 +37,13 @@ def proj_simplex(a):
 
 def check_device(device):
     r"""Checks if using the correct device (e.g. setting gpu with gpu's available)."""
-    if not torch.cuda.is_available() and device == 'gpu':
+    if not torch.cuda.is_available() and device == 'cuda':
         print('Warning: trying to use gpu when not available. Setting to cpu')
         return torch.device('cpu')
     return torch.device(device)
 
 
-def unif(n, device='gpu', dtype=torch.float32):
+def unif(n, device='cuda', dtype=torch.float32):
     r"""Returns uniform sample weights for a number of samples $n > 0$.
     
     Args:

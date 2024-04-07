@@ -25,7 +25,7 @@ class EmpiricalMeasure(AbstractMeasure):
     probability $0 \leq a_{i}$ \leq 1, where $a_{i}$ reflects the sample weight, samples $\mathbf{x}_{i}^{(P)} according
     to $\mathbf{a} \in \Delta_{n}$.
     """
-    def __init__(self, support, weights=None, device='cpu'):
+    def __init__(self, support, weights=None, device='cuda'):
         r"""Initializes an empirical measure,
 
         $$\hat{P} = \sum_{i=1}^{n}a_{i}\delta_{\mathbf{x}_{i}^{(P)}}$$
@@ -58,7 +58,7 @@ class DatasetMeasure(AbstractMeasure):
     
     $$\hat{P} = \dfrac{1}{n}\sum_{i=1}^{n}\delta_{\mathbf{x}_{i}^{(P)}}$$
     """
-    def __init__(self, features, transforms=None, batch_size=64, device='cpu'):
+    def __init__(self, features, transforms=None, batch_size=64, device='cuda'):
         r"""Initializes a DatasetMeasure object.
         
         Args:
@@ -98,7 +98,7 @@ class LabeledDatasetMeasure(AbstractMeasure):
     
     $$\hat{P} = \dfrac{1}{n}\sum_{i=1}^{n}\delta_{(\mathbf{x}_{i}^{(P)},y_{i}^{(P)})}$$
     """
-    def __init__(self, features, labels, transforms=None, batch_size=64, n_classes=None, stratify=False, device='cpu'):
+    def __init__(self, features, labels, transforms=None, batch_size=64, n_classes=None, stratify=False, device='cuda'):
         r"""Initializes a LabeledDatasetMeasure object.
         
         Args:
