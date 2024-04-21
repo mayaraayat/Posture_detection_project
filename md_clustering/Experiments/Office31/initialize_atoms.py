@@ -14,7 +14,7 @@ Y2 = np.load('Results/KMeans/MappedLabels_Domain2.npy', allow_pickle=True)
 Y3 = np.load('Results/KMeans/MappedLabels_Domain3.npy', allow_pickle=True)
 
 # Define hyperparameters
-n_classes = 31
+n_classes = 7
 n_samples = 3000
 batch_size = 128
 ϵ = 0.01
@@ -37,9 +37,9 @@ def initialize_atoms(features,mapped_labels_domain,n_classes,n_samples,batch_siz
 
     for Y in mapped_labels_domain:
         if torch.is_tensor(Y):
-            Ys.append(torch.nn.functional.one_hot(Y.long(), num_classes=31).float())
+            Ys.append(torch.nn.functional.one_hot(Y.long(), num_classes=7).float())
         else:
-            Ys.append(torch.nn.functional.one_hot(torch.from_numpy(Y).long(), num_classes=31).float())
+            Ys.append(torch.nn.functional.one_hot(torch.from_numpy(Y).long(), num_classes=7).float())
 
     # Compute the barycenters
 
@@ -76,11 +76,11 @@ def initialize_atomsTest(features,Y1,Y2,n_classes,n_samples,batch_size,ϵ,η_A,l
     # Prepare data for the barycenter computation
     Xs=features
     if torch.is_tensor(Y1):
-        Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=31).float(),
-              torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float()]
+        Ys = [torch.nn.functional.one_hot(Y1.long(), num_classes=7).float(),
+              torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=7).float()]
     else:
 
-        Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=31).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=31).float()]
+        Ys=[torch.nn.functional.one_hot(torch.from_numpy(Y1).long(), num_classes=7).float(),torch.nn.functional.one_hot(torch.from_numpy(Y2).long(), num_classes=7).float()]
 
     # Compute the barycenters
 

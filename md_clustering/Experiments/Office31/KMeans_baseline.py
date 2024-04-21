@@ -3,11 +3,11 @@ import numpy as np
 import torch
 import sys
 warnings.filterwarnings('ignore')
-sys.path.append('.../')
+sys.path.append('../../../')
 import warnings
 import sys
 warnings.filterwarnings('ignore')
-sys.path.append('.../')
+sys.path.append('../../../')
 
 from md_clustering.utils.kmeans_utils import perform_kmeans_clustering
 from md_clustering.utils.clustering_utils import clusters
@@ -24,7 +24,7 @@ def KMeans_baseline(features):
 
 
 
-    num_clusters = 31
+    num_clusters = 7
 
 
     # Perform k-means clustering for each domain
@@ -70,7 +70,7 @@ def KMeans_baselineTest(features,labels):
 
 
 
-    num_clusters = 31
+    num_clusters = 7
 
 
     # Perform k-means clustering for each domain

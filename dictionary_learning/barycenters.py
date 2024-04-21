@@ -122,6 +122,8 @@ def wasserstein_barycenter_with_cost(XP, YP=None, n_samples=None, ϵ=0.0, α=Non
             C, π = [], []
 
             for k in range(len(XP)):
+                print('XP[k]', XP[k])
+                print('XB', XB)
                 C_k = torch.cdist(XP[k], XB, p=2) ** 2
                 _β = β if β is not None else C_k.max()
                 if penalize_labels:

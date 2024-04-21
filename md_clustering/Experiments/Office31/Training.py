@@ -42,7 +42,7 @@ def Train(xmax,features, labels,n_samples, reg, reg_labels, batch_size, n_classe
 
         ari_history.append(ari)
 
-
+    ari_kmeans = ari_history
     global_ari = []
 
 
@@ -57,14 +57,14 @@ def Train(xmax,features, labels,n_samples, reg, reg_labels, batch_size, n_classe
         ari_history = []
 
 
-        n_classes = 31
+        n_classes = 7
         n_samples = 3000
         batch_size_atoms = 128
         ϵ = 0.01
         η_A = 0.0
         lr = 1e-1
         num_iter_max_atoms = 20
-        num_iter_dil_atoms = 50
+        num_iter_dil_atoms = 20
 
         XP,YP=initialize_atoms(features,mapped_labels_domain,n_classes,n_samples,batch_size_atoms,ϵ,η_A,lr,num_iter_max_atoms,num_iter_dil_atoms)
 
@@ -114,7 +114,7 @@ def Train(xmax,features, labels,n_samples, reg, reg_labels, batch_size, n_classe
     plt.legend()
     plt.show()
 
-    return (XAtom, YAtom)
+    return (XAtom, YAtom, ari_kmeans)
 
 
 

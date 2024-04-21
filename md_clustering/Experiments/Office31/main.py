@@ -2,6 +2,7 @@ import ot
 import sys
 from split_data import split_data
 import torch
+import pickle
 import warnings
 import numpy as np
 import pytorch_lightning as pl
@@ -19,8 +20,10 @@ warnings.filterwarnings('ignore')
 from sklearn.metrics import adjusted_rand_score
 
 def main(features,labels,domain,train_ratio,n_epochs):
-
-    data_list = features.tolist()
+    if type(features) != list:
+        data_list = features.tolist()
+    else : 
+        data_list = features
     alldata = []
     for array in data_list:
         tensor = torch.from_numpy(array)
@@ -87,13 +90,13 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
 
 
-    XAtom, yAtom = Train(n_epochs,X_train, y_train,3000, 0, 0.0, 128, 31,50)
+    XAtom, yAtom, ari_kmeans= Train(n_epochs,X_train, y_train,3000, 0, 0.0, 128, 7,20)
 
     YAtom=[yAtom[i].argmax(dim=1) for i in range(len(yAtom))]
 
     train_dataset = DictionaryDADataset(XAtom, yAtom, Xt, Yt)
     num_iter_dil=100
-    n_classes=31
+    n_classes=7
     batch_size=260
     n_samples=2000
     batches_per_it=n_samples // batch_size
@@ -117,7 +120,7 @@ def main(features,labels,domain,train_ratio,n_epochs):
                                            weight_initialization='uniform')
 
     # Creates trainer object
-    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cpu', logger=False, enable_checkpointing=False)
+    trainer = pl.Trainer(max_epochs=num_iter_dil, accelerator='cuda', logger=False, enable_checkpointing=False)
     trainer.fit(wbr, train_loader)
 
 
@@ -127,7 +130,7 @@ def main(features,labels,domain,train_ratio,n_epochs):
     print(weights.squeeze())
     # Reconstruct samples
 
-    Xr= wasserstein_barycenter(XP=XAtom, YP=yAtom, n_samples=31, ϵ=0.0, α=weights.squeeze(),
+    Xr= wasserstein_barycenter(XP=XAtom, YP=yAtom, n_samples=7, ϵ=0.0, α=weights.squeeze(),
                                     β=None, num_iter_max=10, verbose=True, propagate_labels=False,
                                     penalize_labels=False)
     new_clusters = []
@@ -165,7 +168,8 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
 
 
-    print(ari)
+    print('test: ',ari)
+    print('kmeans: ', ari_kmeans)
 
 
 
@@ -174,14 +178,17 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
 if __name__ == "__main__":
 
-    r"""Features must be an array of n_domains arrays"""
-    features = np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
-
+    r"""Features must be an array or list of n_domains arrays"""
+    with open ('Results/features_dic_6_10.pkl','rb') as file:
+        dic = pickle.load(file)
+    features = list(dic.values())
     r"""Labels must be an array of shape (TotalnumberFeatures,num_classes)"""
 
-    labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
-
-    main(features,labels,"Domain_1",0.8,2)
+    with open ('Results/labels_dic_6_10.pkl','rb') as file:
+        lab = pickle.load(file)
+    labels_list = list(lab.values())
+    labels = np.concatenate(labels_list, axis = 0 )
+    main(features,labels,"Domain_5",0.0,2)
 
 
 
