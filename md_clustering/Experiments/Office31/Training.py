@@ -108,11 +108,11 @@ def Train(xmax,features, labels,n_samples, reg, reg_labels, batch_size, n_classe
     for i in range(num_domains):
         plt.plot([ari[i] for ari in global_ari], label=f'Domain {i + 1}')
 
-    plt.xlabel('Epoch')
-    plt.ylabel('ARI score')
-    plt.title('Evolution of Clustering Performance Over Epochs')
-    plt.legend()
-    plt.show()
+    # plt.xlabel('Epoch')
+    # plt.ylabel('ARI score')
+    # plt.title('Evolution of Clustering Performance Over Epochs')
+    # plt.legend()
+    # plt.show()
 
     return (XAtom, YAtom)
 

@@ -11,8 +11,14 @@ from dictionary_learning.utilss import DictionaryDADataset
 
 from dictionary_learning.barycenters import wasserstein_barycenter,wasserstein_barycenter_with_cost
 from dictionary_learning.barycentric_regression import WassersteinBarycentricRegression
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
-
+from matplotlib.colors import ListedColormap
 
 sys.path.append('../../')
 warnings.filterwarnings('ignore')
@@ -87,7 +93,7 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
 
 
-    XAtom, yAtom = Train(n_epochs,X_train, y_train,3000, 0, 0.0, 128, 31,50)
+    XAtom, yAtom = Train(n_epochs,X_train, y_train,3000, 0, 0, 128, 31,30)
 
     YAtom=[yAtom[i].argmax(dim=1) for i in range(len(yAtom))]
 
@@ -152,36 +158,115 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
 
     #Method with OT
-    π = ot.emd([], [], np.array(Cℓ))
-    new_clusters = torch.argmax(torch.transpose(torch.tensor(π), 0, 1), dim=1)
+    # π = ot.emd([], [], np.array(Cℓ))
+    #  new_clusters = torch.argmax(torch.transpose(torch.tensor(π), 0, 2), dim=1)
+
+
+    # Final_idea
+
+    C_k = torch.cdist(torch.tensor(Xt), Xr, p=2) ** 2
+    cost_matrix = np.linalg.norm(Xr[:, np.newaxis, :] - torch.tensor(Xt), axis=2)
+
+    π_k = ot.emd([], [], np.array(cost_matrix))
+
+    centroid = torch.mm(torch.tensor(π_k), torch.tensor(Xt))
+    centroid_sums = centroid.sum(axis=1)
+
+    # Normalize each centroid
+    centroid = centroid * centroid_sums[:, np.newaxis]
+
+
+    new_clusters = []
+    Cℓ = torch.cdist(centroid.cpu(), torch.tensor(Xt).float(), p=2) ** 2
+    clusters_ℓ = Cℓ.argmin(dim=0)
+    unique_labels, counts = np.unique(clusters_ℓ, return_counts=True)
 
 
 
 
-
-
-
-    ari = adjusted_rand_score(y_test, clusterss)
-
+    ari = adjusted_rand_score(y_test, clusters_ℓ)
 
 
     print(ari)
+    return(ari)
 
+
+
+
+    #
+    # # Concatenate Xt and Xr
+    # combined_data = np.concatenate((Xt, centroid), axis=0)
+    # print(Xt.shape)
+    # print(centroid.shape)
+    # # Initialize t-SNE for combined data
+    # tsneBR = TSNE(n_components=2, random_state=42)
+    #
+    # # Apply t-SNE to reduce combined data to 2D
+    # data_tsne_combined = tsneBR.fit_transform(combined_data)
+    #
+    # # Split the transformed data back into Xt and Xr
+    # data_tsne_Xt = data_tsne_combined[:len(Xt)]
+    # data_tsne_Xr = data_tsne_combined[len(Xt):]
+    #
+    # # Calculate transparency values for Xr
+    # transparency = 1 - π_k[0] * 350
+    # transparency = np.clip(transparency, 0, 1)
+    #
+    # # Create a colormap
+    # cmap = plt.get_cmap('coolwarm')
+    #
+    # # Plot the t-SNE transformed Xr points with transparency
+    # plt.figure(figsize=(8, 6))
+    # plt.scatter(data_tsne_Xr[:, 0], data_tsne_Xr[:, 1],cmap=cmap, s=40)
+    #
+    # # Plot the t-SNE transformed Xt points and highlight the first point
+    # plt.scatter(data_tsne_Xt[:, 0], data_tsne_Xt[:, 1], color='#B0E0E6', alpha=0.6, s=40)
+    # plt.scatter(data_tsne_Xt[0, 0], data_tsne_Xt[0, 1], color='red', alpha=1, s=100)  # Highlight the first point
+    #
+    # plt.title('t-SNE Visualization of Clustering dslr')
+    # plt.legend()
+    # plt.show()
+
+    # Calculate confusion matrix
+    cm = confusion_matrix(y_test, clusters_ℓ)
+
+    # Plot confusion matrix as heatmap
+    plt.figure(figsize=(8, 6))
+    #sns.heatmap(cm, annot=True, fmt='d', cmap='blues')
+    # Define custom colors for the palette (green and red)
+    colors = ["#ffd700", "#800020", "#006400"]  # Gold, Burgundy, Dark Green
+
+    # Create a custom colormap using ListedColormap
+    custom_cmap = ListedColormap(colors)
+    #sns.heatmap(cm, annot=True, cmap=custom_cmap, fmt='d')
+    sns.heatmap(cm, annot=True, fmt='d', cmap='blues')
+
+
+    # plt.title('Confusion Matrix')
+    # plt.xlabel('Predicted Label')
+    # plt.ylabel('True Label')
+    # plt.show()
 
 
 
 
 
 if __name__ == "__main__":
-
+    train_aris=[]
+    #for i in [32,64,128,256,612]:
     r"""Features must be an array of n_domains arrays"""
     features = np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
 
     r"""Labels must be an array of shape (TotalnumberFeatures,num_classes)"""
 
     labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
+    iteration_aris=[]
+    for j in range(5):
 
-    main(features,labels,"Domain_1",0.8,2)
+        ari=main(features,labels,"Domain_2",0,1)
+        iteration_aris.append(ari)
+        print("iteration_aris",iteration_aris)
+    print("Average ARI Performance ",np.mean(iteration_aris))
 
 
 

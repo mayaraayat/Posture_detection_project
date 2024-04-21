@@ -75,11 +75,6 @@ def dadil_clustering(Xs, Ys,XP,YP, n_samples,reg,reg_labels, batch_size, n_class
 
 
 
-
-
-
-
-
     #new_clusters = [torch.argmax(torch.transpose(torch.tensor(P), 0, 1), dim=1) for P in transport_plans]
 
 
@@ -104,17 +99,14 @@ def dadil_clustering(Xs, Ys,XP,YP, n_samples,reg,reg_labels, batch_size, n_class
             if i not in unique_labels:
                 empty_clusters.append(i)
 
-        print("len empty_clusters " , len(empty_clusters))
         for empty_cluster in empty_clusters:
             # Randomly select a non-empty cluster
             non_empty_clusters = np.where(counts > 0)[0]
             non_empty_cluster = np.random.choice(non_empty_clusters)
 
-            # Use its centroid with a small random perturbation as the new centroid for the empty cluster
             new_centroid = centroids[non_empty_cluster] + np.random.normal(scale=1e-6, size=centroids.shape[1])
             centroids[empty_cluster] = new_centroid
 
-            # Reassign the points belonging to the non-empty cluster to the two resulting clusters
             mask = clusters_ℓ == non_empty_cluster
             clusters_ℓ[mask] = empty_cluster
         new_clusters.append(clusters_ℓ)
@@ -135,6 +127,44 @@ def dadil_clustering(Xs, Ys,XP,YP, n_samples,reg,reg_labels, batch_size, n_class
     # new_clusters_OT = [torch.argmax(torch.tensor(P), dim=1) for P in transport_plans]
 
 
+    #Final_idea
+    centroids=[]
+    transport_plans = []
+    for k, (XBℓ, XQℓ) in enumerate(zip(XB, Xs)):
+         C_k = torch.cdist(XQℓ,XBℓ, p=2) ** 2
+         cost_matrix = np.linalg.norm(XBℓ[:, np.newaxis, :] - XQℓ, axis=2)
+
+
+
+         π_k = ot.emd([], [], np.array(cost_matrix))
+
+         n_samples=torch.tensor(π_k).shape[1]
+         #centroid = sum([α_k * n_samples * torch.mm(π_k.T, XP_k) for α_k, π_k, XP_k in zip(α, π, XP)])
+         centroid=torch.mm(torch.tensor(π_k), XQℓ)
+         centroid_sums = centroid.sum(axis=1)
+
+         # Normalize each centroid
+         centroid = centroid * centroid_sums[:, np.newaxis]
+         centroids.append(centroid)
+         transport_plans.append(torch.tensor(π_k))
+
+    new_clusters_OT = [torch.argmax(torch.tensor(P), dim=1) for P in transport_plans]
+
+
+    new_clusters = []
+    for ℓ, (XBℓ, XQℓ) in enumerate(zip(centroids, Xs)):
+        Cℓ = torch.cdist(XBℓ.cpu(), torch.tensor(XQℓ).float(), p=2) ** 2
+        clusters_ℓ = Cℓ.argmin(dim=0)
+        unique_labels, counts = np.unique(clusters_ℓ, return_counts=True)
+        # Determine empty clusters based on centroids
+        empty_clusters = []
+        for i, centroid in enumerate(XBℓ):
+            if i not in unique_labels:
+                empty_clusters.append(i)
+
+        print("len empty_clusters " , len(empty_clusters))
+
+        new_clusters.append(clusters_ℓ)
 
 
 
