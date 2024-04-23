@@ -44,7 +44,7 @@ def dadil_clustering(Xs, Ys,XP,YP, n_samples,reg,reg_labels, batch_size, n_class
     )
 
     # Create a Lightning Trainer
-    trainer = pl.Trainer(max_epochs=num_iter_max, accelerator='cpu', logger=False, enable_checkpointing=False)
+    trainer = pl.Trainer(max_epochs=num_iter_max, accelerator='cuda', logger=False, enable_checkpointing=False)
 
     # Train the dictionary
     trainer.fit(dictionary, train_loader)
