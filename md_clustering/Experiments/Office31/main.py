@@ -179,12 +179,12 @@ def main(features,labels,domain,train_ratio,n_epochs):
 if __name__ == "__main__":
 
     r"""Features must be an array or list of n_domains arrays"""
-    with open ('Results/features_dic_6_10shuffle.pkl','rb') as file:
+    with open ('Results/features_dic_679.pkl','rb') as file:
         dic = pickle.load(file)
     features = list(dic.values())
     r"""Labels must be an array of shape (TotalnumberFeatures,num_classes)"""
 
-    with open ('Results/labels_dic_6_10shuffle.pkl','rb') as file:
+    with open ('Results/labels_dic_679.pkl','rb') as file:
         lab = pickle.load(file)
     labels_list = list(lab.values())
     labels = np.concatenate(labels_list, axis = 0 )
