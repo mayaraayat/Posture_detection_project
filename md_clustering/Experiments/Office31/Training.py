@@ -9,7 +9,7 @@ from split_data import *
 from KMeans_baseline import *
 from initialize_atoms import initialize_atoms
 from clustering import dadclustering
-sys.path.append('../../')
+sys.path.append('../../../../')
 from dictionary_learning.weighted_barycenters import compute_barycenters
 
 warnings.filterwarnings('ignore')
@@ -25,7 +25,7 @@ def Train(xmax,features, labels,n_samples, reg, reg_labels, batch_size, n_classe
 
 
     Ys = []
-    [*mapped_labels_domain] = KMeans_baseline(features)
+    [*mapped_labels_domain] = KMeans_baseline(features,labels,n_classes)
     for Y in mapped_labels_domain:
         Ys.append(torch.nn.functional.one_hot(torch.tensor(Y).long(), num_classes=n_classes).float())
 
@@ -114,7 +114,7 @@ def Train(xmax,features, labels,n_samples, reg, reg_labels, batch_size, n_classe
     plt.legend()
     plt.show()
 
-    return (XAtom, YAtom, ari_kmeans)
+    return (XAtom, YAtom, ari_kmeans, global_ari)
 
 
 

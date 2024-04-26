@@ -5,7 +5,8 @@ from dictionary_learning.DaDiL_clusteringV1 import dadil_clustering
 from scipy.spatial.distance import cdist
 import numpy as np
 from md_clustering.utils.clustering_utils import clusters
-
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 # Suppress warnings
 warnings.filterwarnings('ignore')
 
@@ -60,7 +61,7 @@ def dadclustering(features, Ys, XP, YP, n_samples, reg, reg_labels, batch_size, 
         return domain
     
     Xs = features
-    cluster_labels, XAtom, YAtom = dadil_clustering(
+    cluster_labels, XAtom, YAtom, XB = dadil_clustering(
         Xs, Ys, XP, YP, n_samples, reg, reg_labels, batch_size, n_classes, num_iter_max)
 
     domains=[]
@@ -76,24 +77,65 @@ def dadclustering(features, Ys, XP, YP, n_samples, reg, reg_labels, batch_size, 
     for i in range(1, len(domains)):
         mapped_labels.append(domains[i].clusters_mapping(domains[0].cluster_tensors))
 
-        # domain_1 = clusters(features[0], cluster_labels[0], n_classes)
-        # domain_2 = clusters(features[1], cluster_labels[1], n_classes)
-        # domain_3 = clusters(features[2], cluster_labels[2], n_classes)
-        #
-        # # Cluster data for each domain
-        #
-        # domain_1.cluster_data()
-        # domain_2.cluster_data()
-        # domain_3.cluster_data()
-        #
-        # print("longeur de domain 2", len(domain_2.cluster_tensors))
-        #
-        #
-        # mapped_labels_domain_1 = domain_1.clusters_mapping(domain_2.cluster_tensors)
-        #
-        # mapped_labels_domain_3 = domain_3.clusters_mapping(domain_2.cluster_tensors)
 
-    # Determine the return values based on the length of mapped_labels
+
+    plt.figure(figsize=(10, 8))
+
+
+    tsne = TSNE(n_components=2, random_state=42)
+    embedded_data = tsne.fit_transform(Xs[0])
+    clus = domains[0].labels
+    for label in np.unique(clus):
+        indices = np.where(clus == label)
+        plt.scatter(embedded_data[indices, 0], embedded_data[indices, 1], label=label)
+    plt.title('t-SNE Visualization')
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
+    plt.legend()
+    plt.savefig('Results/dadil_data.png')
+    plt.show()
+    plt.close()
+    
+    for i in range(len(domains)):
+        plt.figure(figsize=(10, 8))
+        tsne = TSNE(n_components=2, random_state=42)
+        data=np.concatenate((Xs[i],XB[i]), axis=0)
+        embedded_data2 = tsne.fit_transform(data)
+
+
+        plt.scatter(embedded_data2[:len(Xs[i]), 0], embedded_data2[:len(Xs[i]), 1], label=f'Data{i}')
+
+        # Plot data2
+        plt.scatter(embedded_data2[len(Xs[i]):, 0], embedded_data2[len(Xs[i]):, 1], label='Centroids')
+
+
+        plt.title(f"t-SNE Visualization of the clustering of domain{i} using U-DaDiL")
+        plt.xlabel('Dimension 1')
+        plt.ylabel('Dimension 2')
+        plt.legend()
+        plt.savefig(f'Results/dadil_data{i}.png')
+        plt.show()
+        plt.close()
+    #plt.figure(figsize=(10, 8))
+    '''tsne = TSNE(n_components=2, random_state=42)
+    data=np.concatenate((Xs[0],XB[0]), axis=0)
+    embedded_data2 = tsne.fit_transform(data)
+
+
+    plt.scatter(embedded_data2[:len(Xs[0]), 0], embedded_data2[:len(Xs[0]), 1], label='Data1')
+
+    # Plot data2
+    plt.scatter(embedded_data2[len(Xs[0]):, 0], embedded_data2[len(Xs[0]):, 1], label='Centroids')
+
+
+    plt.title('t-SNE Visualization')
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
+    plt.legend()
+    plt.savefig('Results/dadil_data1.png')
+    plt.show()
+    plt.close()'''
+    
     if len(mapped_labels) == 1:
         return [cluster_labels[0], mapped_labels[0]],XAtom, YAtom
     else:

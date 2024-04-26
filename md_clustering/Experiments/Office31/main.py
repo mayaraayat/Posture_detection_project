@@ -6,16 +6,17 @@ import pickle
 import warnings
 import numpy as np
 import pytorch_lightning as pl
-from Training import Train
+sys.path.append('../../')
+
 from dictionary_learning.utilss import BalancedBatchSamplerDA
 from dictionary_learning.utilss import DictionaryDADataset
-
+from Training import Train
 from dictionary_learning.barycenters import wasserstein_barycenter,wasserstein_barycenter_with_cost
 from dictionary_learning.barycentric_regression import WassersteinBarycentricRegression
 
 
 
-sys.path.append('../../')
+
 warnings.filterwarnings('ignore')
 from sklearn.metrics import adjusted_rand_score
 
@@ -90,7 +91,7 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
 
 
-    XAtom, yAtom, ari_kmeans= Train(n_epochs,X_train, y_train,3000, 0, 0.0, 128, 7,20)
+    XAtom, yAtom, ari_kmeans, global_ari= Train(n_epochs,X_train, y_train,3000, 0, 0.0, 128, 7,20)
 
     YAtom=[yAtom[i].argmax(dim=1) for i in range(len(yAtom))]
 
@@ -170,6 +171,7 @@ def main(features,labels,domain,train_ratio,n_epochs):
 
     print('test: ',ari)
     print('kmeans: ', ari_kmeans)
+    print('global ari', global_ari)
 
     return ari
 
@@ -179,17 +181,17 @@ def main(features,labels,domain,train_ratio,n_epochs):
 if __name__ == "__main__":
 
     r"""Features must be an array or list of n_domains arrays"""
-    with open ('Results/features_dic_679.pkl','rb') as file:
+    with open ('Results/features_dic_6789.pkl','rb') as file:
         dic = pickle.load(file)
     features = list(dic.values())
     r"""Labels must be an array of shape (TotalnumberFeatures,num_classes)"""
 
-    with open ('Results/labels_dic_679.pkl','rb') as file:
+    with open ('Results/labels_dic_6789.pkl','rb') as file:
         lab = pickle.load(file)
     labels_list = list(lab.values())
     labels = np.concatenate(labels_list, axis = 0 )
     iteration_aris=[]
-    for j in range(3):
+    for j in range(1):
 
         ari=main(features,labels,"Domain_2",0.0,1)
         iteration_aris.append(ari)

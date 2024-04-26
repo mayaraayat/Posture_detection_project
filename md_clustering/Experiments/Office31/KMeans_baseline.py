@@ -3,12 +3,11 @@ import numpy as np
 import torch
 import sys
 warnings.filterwarnings('ignore')
-sys.path.append('.../')
-import warnings
+sys.path.append('../../../')
+
 import pickle
 import sys
-warnings.filterwarnings('ignore')
-sys.path.append('.../')
+
 import numpy as np
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
@@ -16,8 +15,6 @@ from md_clustering.utils.kmeans_utils import perform_kmeans_clustering
 from md_clustering.utils.clustering_utils import clusters
 from sklearn.metrics import adjusted_rand_score
 
-from md_clustering.utils.kmeans_utils import perform_kmeans_clustering
-from md_clustering.utils.clustering_utils import clusters
 
 features = np.load('Data/resnet50-all--modern_office31.npy', allow_pickle=True)
 labels = np.load('Data/labels-resnet50-all--modern_office31.npy', allow_pickle=True)
@@ -66,31 +63,60 @@ def KMeans_baseline(features,truelabels,num_clusters):
 
 
 
+    
     tsne = TSNE(n_components=2, random_state=42)
     #data=np.concatenate((features[1],XB[1]), axis=0)
     embedded_data = tsne.fit_transform(features[0])
 
-
     for label in np.unique(cluster_labels[0]):
-         indices = np.where(cluster_labels[0] == label)
-         plt.scatter(embedded_data[indices, 0], embedded_data[indices, 1], label=label)
+        indices = np.where(cluster_labels[0] == label)
+        plt.scatter(embedded_data[indices, 0], embedded_data[indices, 1], label=label)
+
+    
 
 
-    #plt.scatter(embedded_data[:len(features[1]), 0], embedded_data[:len(features[1]), 1], label='Data1')
+
+
+    plt.title(f't-SNE Visualization of the clustering of domain{i} using K-Means' )
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
+    plt.legend()
+    plt.savefig('Results/kmeans_data.png')
+    plt.show()
+    
+    for i in range(len(features)):
+        plt.figure(figsize=(10, 8))
+        tsne = TSNE(n_components=2, random_state=42)
+        data=np.concatenate((features[i],XB[i]), axis=0)
+        embedded_data = tsne.fit_transform(data)
+
+        plt.scatter(embedded_data[:len(features[i]), 0], embedded_data[:len(features[i]), 1], label=f'Data{i}')
+
+        # Plot data2
+        plt.scatter(embedded_data[len(features[i]):, 0], embedded_data[len(features[i]):, 1], label='Centroids')
+        plt.title(f't-SNE Visualization of the clustering of domain{i} using K-Means')
+        plt.xlabel('Dimension 1')
+        plt.ylabel('Dimension 2')
+        plt.legend()
+        plt.savefig(f'Results/kmeans_datacentroids_{i}.png')
+        plt.show()
+        plt.close()
+    '''plt.figure(figsize=(10, 8))
+    tsne = TSNE(n_components=2, random_state=42)
+    data=np.concatenate((features[1],XB[1]), axis=0)
+    embedded_data = tsne.fit_transform(data)
+
+    plt.scatter(embedded_data[:len(features[1]), 0], embedded_data[:len(features[1]), 1], label='Data1')
 
     # Plot data2
-    #plt.scatter(embedded_data[len(features[1]):, 0], embedded_data[len(features[1]):, 1], label='Centroids')
-
-
-
-
+    plt.scatter(embedded_data[len(features[1]):, 0], embedded_data[len(features[1]):, 1], label='Centroids')
     plt.title('t-SNE Visualization')
     plt.xlabel('Dimension 1')
     plt.ylabel('Dimension 2')
     plt.legend()
+    plt.savefig('Results/kmeans_datacentroids1.png')
     plt.show()
-
-
+    plt.close()'''
     # Assuming 'tensor_data' is your input tensor and 'labels' is your corresponding labels
     #tsne = TSNE(n_components=2, random_state=42)
     #embedded_data = tsne.fit_transform(features[0])
